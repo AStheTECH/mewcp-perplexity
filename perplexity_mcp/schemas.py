@@ -57,7 +57,3 @@ class ModelInfo(TypedDict):
     owned_by: str
 
 
-class ApiKeyInput(TypedDict):
-    """API key input structure for tools."""
-
-    api_key: str

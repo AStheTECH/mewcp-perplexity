@@ -16,8 +16,7 @@ def register_tools(mcp: FastMCP) -> None:
         name="search",
         description="Search the web using Perplexity AI. Returns an LLM-generated response with citations from online sources. Use this for queries that need current information, news, or factual answers with references.",
     )
-    async def search(  # Changed to async def
-        api_key: str = Field(..., description="Perplexity API key for authentication"),
+    async def search(
         query: str = Field(..., description="Search query to look up on the web"),
         model: str = Field(
             default=None,
@@ -40,20 +39,16 @@ def register_tools(mcp: FastMCP) -> None:
         try:
             logger.info(f"Executing search for query: {query[:100]}...")
 
-            # Call Perplexity API
             result = await search_perplexity(
-                api_key=api_key,
                 query=query,
                 model=model,
                 max_tokens=max_tokens,
                 temperature=temperature,
             )
 
-            # Extract the response content
             if "choices" in result and len(result["choices"]) > 0:
                 response_text = result["choices"][0]["message"]["content"]
 
-                # Add metadata
                 output = {
                     "success": True,
                     "query": query,
@@ -62,9 +57,7 @@ def register_tools(mcp: FastMCP) -> None:
                     "usage": result.get("usage"),
                 }
 
-                logger.info(
-                    f"Search completed successfully for query: {query[:100]}..."
-                )
+                logger.info(f"Search completed successfully for query: {query[:100]}...")
                 return json.dumps(output, indent=2)
             else:
                 error_msg = "Unexpected API response format"
@@ -73,31 +66,20 @@ def register_tools(mcp: FastMCP) -> None:
 
         except Exception as e:
             error_msg = str(e)
-            logger.error(
-                f"Search failed for query '{query}': {error_msg}", exc_info=True
-            )
-            return json.dumps(
-                {
-                    "success": False,
-                    "error": error_msg,
-                    "query": query,
-                }
-            )
+            logger.error(f"Search failed for query '{query}': {error_msg}", exc_info=True)
+            return json.dumps({"success": False, "error": error_msg, "query": query})
 
     @mcp.tool(
         name="get_models",
         description="List all available models from Perplexity AI, including both online and offline models.",
     )
-    async def get_models(  # Changed to async def
-        api_key: str = Field(..., description="Perplexity API key for authentication"),
-    ) -> str:
+    async def get_models() -> str:
         """Get list of available Perplexity models."""
         try:
             logger.info("Fetching available models...")
 
-            models = await get_available_models(api_key)
+            models = await get_available_models()
 
-            # Format model list
             online_models = []
             other_models = []
 
@@ -122,24 +104,11 @@ def register_tools(mcp: FastMCP) -> None:
         except Exception as e:
             error_msg = str(e)
             logger.error(f"Failed to fetch models: {error_msg}", exc_info=True)
-            return json.dumps(
-                {
-                    "success": False,
-                    "error": error_msg,
-                }
-            )
+            return json.dumps({"success": False, "error": error_msg})
 
     @mcp.tool(
         name="health_check",
         description="Check server readiness and basic connectivity.",
     )
-    def health_check() -> str:  # This one stays sync (no async operations)
-        """Health check endpoint."""
-        return json.dumps(
-            {
-                "status": "ok",
-                "server": "CL Perplexity MCP Server",
-                "type": "utility",
-                "auth_required": True,
-            }
-        )
+    def health_check() -> str:
+        return json.dumps({"status": "ok", "server": "CL Perplexity MCP Server"})
