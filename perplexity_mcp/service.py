@@ -21,6 +21,7 @@ class PerplexityClient:
         self.headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "X-Pplx-Integration": "mewcp-perplexity",
         }
 
     async def chat_completion(
